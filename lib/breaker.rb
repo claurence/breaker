@@ -120,7 +120,7 @@ module Breaker
     end
 
     def half_open?(clock)
-      tripped? && clock >= fuse.retry_threshold
+      (tripped? || open?) && clock >= fuse.retry_threshold
     end
   end
 end

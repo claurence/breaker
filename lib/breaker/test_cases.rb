@@ -165,6 +165,28 @@ module Breaker
       end
     end
 
+    # open, fewer than threshold failures
+    def test_open_with_fewer_than_threshold_failures_will_still_close
+      clock = Time.now
+      circuit = Breaker.circuit 'test', failure_threshold: 5, retry_timeout: 15, failure_count: 1
+
+      circuit.open
+
+      assert circuit.open?
+
+      assert_raises Breaker::CircuitOpenError do
+        circuit.run clock do
+          # nothing
+        end
+      end
+
+      circuit.run clock + circuit.retry_timeout + 1 do
+        # do nothing, this works and flips the circuit back closed
+      end
+
+      assert circuit.closed?
+    end
+
     def test_breaker_query_methods
       circuit = Breaker.circuit 'test'
       circuit.close
